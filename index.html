@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MedCoach - Prototype</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; display: flex; justify-content: center; align-items: center; padding: 20px; }
+.container { background: white; border-radius: 10px; box-shadow: 0 10px 40px rgba(0,0,0,0.3); max-width: 500px; width: 100%; padding: 40px; }
+h1 { color: #333; margin-bottom: 10px; text-align: center; }
+.subtitle { color: #666; text-align: center; margin-bottom: 30px; font-size: 14px; }
+.form-group { margin-bottom: 20px; }
+label { display: block; margin-bottom: 8px; color: #333; font-weight: 500; }
+input, textarea { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px; font-family: inherit; }
+input:focus, textarea:focus { outline: none; border-color: #667eea; box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1); }
+button { width: 100%; padding: 12px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 5px; font-size: 16px; font-weight: 600; cursor: pointer; }
+.features { margin-top: 30px; padding-top: 30px; border-top: 1px solid #eee; }
+.feature { display: flex; align-items: center; margin-bottom: 15px; }
+.feature-icon { width: 30px; height: 30px; background: #667eea; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; margin-right: 15px; }
+.feature-text { color: #666; font-size: 14px; }
+</style>
+</head>
+<body>
+<div class="container">
+<h1>MedCoach</h1>
+<p class="subtitle">Votre coach santé personnel</p>
+<form>
+<div class="form-group">
+<label for="name">Nom</label>
+<input type="text" id="name" name="name" placeholder="Entrez votre nom" required>
+</div>
+<div class="form-group">
+<label for="email">Email</label>
+<input type="email" id="email" name="email" placeholder="votre@email.com" required>
+</div>
+<div class="form-group">
+<label for="age">Âge</label>
+<input type="number" id="age" name="age" placeholder="Votre âge" min="1" max="150">
+</div>
+<div class="form-group">
+<label for="concern">Préoccupation Santé</label>
+<textarea id="concern" name="concern" rows="4" placeholder="Décrivez votre objectif de santé..."></textarea>
+</div>
+<button type="submit">Commencer</button>
+</form>
+<div class="features">
+<div class="feature">
+<div class="feature-icon">✓</div>
+<div class="feature-text">Suivi personnalisé de votre santé</div>
+</div>
+<div class="feature">
+<div class="feature-icon">✓</div>
+<div class="feature-text">Conseils adaptés à vos besoins</div>
+</div>
+<div class="feature">
+<div class="feature-icon">✓</div>
+<div class="feature-text">Intégration avec vos données de santé</div>
+</div>
+</div>
+</div>
+</body>
+</html>
