@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MedCoach - Suivi Santé</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; padding: 20px; }
+    .container { max-width: 600px; margin: 0 auto; background: white; border-radius: 16px; padding: 30px; box-shadow: 0 8px 32px rgba(0,0,0,0.2); }
+    h1 { font-size: 28px; margin-bottom: 20px; color: #333; text-align: center; }
+    .form-group { margin-bottom: 15px; }
+    label { display: block; font-weight: 600; margin-bottom: 8px; color: #333; }
+    input, select { width: 100%; padding: 12px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 16px; }
+    input:focus, select:focus { outline: none; border-color: #667eea; }
+    button { width: 100%; padding: 14px; background: linear-gradient(135deg, #667eea, #764ba2); color: white; border: none; border-radius: 12px; font-size: 16px; font-weight: 600; cursor: pointer; margin-top: 10px; }
+    button:active { transform: scale(0.98); }
+    .btn-small { flex: 1; padding: 8px; font-size: 13px; margin: 0 5px; }
+    .btn-taken { background: #4CAF50; }
+    .btn-delete { background: #ff4444; }
+    .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 20px; }
+    .stat-card { background: linear-gradient(135deg, #667eea, #764ba2); color: white; padding: 15px; border-radius: 10px; text-align: center; }
+    .stat-value { font-size: 28px; font-weight: 700; }
+    .stat-label { font-size: 12px; margin-top: 5px; }
+    .med-item { background: #f8f9fa; padding: 12px; border-radius: 8px; margin-bottom: 10px; border-left: 4px solid #667eea; }
+    .med-name { font-weight: 600; margin-bottom: 5px; }
+    .med-actions { display: flex; gap: 5px; margin-top: 8px; }
+    .hidden { display: none; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>💊 MedCoach</h1>
+    
+    <!-- ONBOARDING -->
+    <div id="onboarding">
+      <h2 style="font-size: 20px; margin-bottom: 20px;">Bienvenue !</h2>
+      <div class="form-group">
+        <label>Votre prénom</label>
+        <input id="userName" type="text" placeholder="Ex: Sophie">
+      </div>
+      <div class="form-group">
+        <label>Âge</label>
+        <input id="userAge" type="number" placeholder="Ex: 28">
+      </div>
+      <button onclick="startApp()">🚀 Commencer</button>
+    </div>
+
+    <!-- DASHBOARD -->
+    <div id="dashboard" class="hidden">
+      <h2 id="greeting" style="font-size: 20px; margin-bottom: 20px;"></h2>
+      
+      <div class="stats">
+        <div class="stat-card">
+          <div class="stat-value" id="statStreak">0</div>
+          <div class="stat-label">🔥 Jours</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="statMeds">0</div>
+          <div class="stat-label">💊 Médocs</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="statTakes">0</div>
+          <div class="stat-label">✅ Prises</div>
+        </div>
+      </div>
+
+      <h3 style="margin-top: 20px; margin-bottom: 10px;">➕ Ajouter un médicament</h3>
+      <div class="form-group">
+        <input id="medName" type="text" placeholder="Nom du médicament">
+      </div>
+      <div class="form-group">
+        <label>Quantité</label>
+        <input id="medQty" type="number" value="1">
+      </div>
+      <div class="form-group">
+        <label>Unité</label>
+        <select id="medUnit">
+          <option>Comprimé</option>
+          <option>Gélule</option>
+          <option>ml</option>
+          <option>Gouttes</option>
+        </select>
+      </div>
+      <button onclick="addMed()">➕ Ajouter</button>
+
+      <h3 style="margin-top: 20px; margin-bottom: 10px;">📋 Mes médicaments</h3>
+      <div id="medList"></div>
+
+      <button class="btn-small" onclick="resetData()" style="width: auto; margin-top: 20px; background: #999; padding: 8px 16px;">🔄 Réinitialiser</button>
+    </div>
+  </div>
+
+  <script>
+    let meds = [];
+    let takes = [];
+
+    window.addEventListener('load', () => {
+      const profile = localStorage.getItem('mc_profile');
+      if (profile) showDashboard();
+    });
+
+    function startApp() {
+      const name = document.getElementById('userName').value.trim();
+      const age = document.getElementById('userAge').value;
+      if (!name || !age) { alert('⚠️ Remplissez tous les champs'); return; }
+      localStorage.setItem('mc_profile', JSON.stringify({ name, age }));
+      showDashboard();
+    }
+
+    function showDashboard() {
+      document.getElementById('onboarding').classList.add('hidden');
+      document.getElementById('dashboard').classList.remove('hidden');
+      const profile = JSON.parse(localStorage.getItem('mc_profile') || '{}');
+      document.getElementById('greeting').textContent = 'Bonjour ' + profile.name + ' 👋';
+      loadData();
+      updateStats();
+      displayMeds();
+    }
+
+    function loadData() {
+      meds = JSON.parse(localStorage.getItem('mc_meds') || '[]');
+      takes = JSON.parse(localStorage.getItem('mc_takes') || '[]');
+    }
+
+    function saveData() {
+      localStorage.setItem('mc_meds', JSON.stringify(meds));
+      localStorage.setItem('mc_takes', JSON.stringify(takes));
+    }
+
+    function addMed() {
+      const name = document.getElementById('medName').value.trim();
+      const qty = document.getElementById('medQty').value;
+      const unit = document.getElementById('medUnit').value;
+      if (!name || !qty) { alert('⚠️ Remplissez tous les champs'); return; }
+      meds.push({ id: Date.now(), name, qty: parseFloat(qty), unit });
+      saveData();
+      document.getElementById('medName').value = '';
+      document.getElementById('medQty').value = '1';
+      displayMeds();
+      updateStats();
+      alert('✅ Médicament ajouté !');
+    }
+
+    function displayMeds() {
+      const list = document.getElementById('medList');
+      if (meds.length === 0) { list.innerHTML = '<p style="color: #999;">Aucun médicament</p>'; return; }
+      list.innerHTML = meds.map((m, i) => `
+        <div class="med-item">
+          <div class="med-name">${m.name}</div>
+          <div style="color: #666; font-size: 14px;">${m.qty} ${m.unit}</div>
+          <div class="med-actions">
+            <button class="btn-small btn-taken" onclick="markTaken(${i})">✅ Pris</button>
+            <button class="btn-small btn-delete" onclick="deleteMed(${i})">🗑️ Suppr</button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function markTaken(idx) {
+      takes.push({ medId: meds[idx].id, date: new Date().toISOString(), medName: meds[idx].name });
+      saveData();
+      updateStats();
+      alert('✅ Prise enregistrée !');
+    }
+
+    function deleteMed(idx) {
+      if (confirm('Supprimer ce médicament ?')) { 
+        meds.splice(idx, 1); 
+        saveData(); 
+        displayMeds(); 
+        updateStats(); 
+      }
+    }
+
+    function updateStats() {
+      document.getElementById('statMeds').textContent = meds.length;
+      document.getElementById('statTakes').textContent = takes.length;
+      
+      // Streak
+      const uniqueDays = [...new Set(takes.map(t => t.date.split('T')[0]))];
+      let streak = 0;
+      const today = new Date().toISOString().split('T')[0];
+      if (uniqueDays.includes(today)) {
+        streak = 1;
+        for (let i = 1; i < 365; i++) {
+          const d = new Date();
+          d.setDate(d.getDate() - i);
+          const checkDate = d.toISOString().split('T')[0];
+          if (uniqueDays.includes(checkDate)) streak++;
+          else break;
+        }
+      }
+      document.getElementById('statStreak').textContent = streak;
+    }
+
+    function resetData() {
+      if (confirm('Réinitialiser tous les données ?')) {
+        localStorage.clear();
+        location.reload();
+      }
+    }
+  </script>
+</body>
+</html>
