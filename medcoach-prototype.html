@@ -18,260 +18,263 @@
     input:focus, textarea:focus, select:focus { outline: none; border-color: #667eea; box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1); }
     button { width: 100%; padding: 12px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 5px; font-size: 16px; font-weight: 600; cursor: pointer; }
     button:hover { opacity: 0.9; }
-    
-    /* Styles pour l'autocomplete */
     #suggestions { list-style: none; position: absolute; top: 100%; left: 0; right: 0; background: white; border: 1px solid #ddd; border-top: none; border-radius: 0 0 5px 5px; max-height: 200px; overflow-y: auto; z-index: 100; display: none; }
     #suggestions.active { display: block; }
     #suggestions li { padding: 10px; border-bottom: 1px solid #eee; cursor: pointer; }
     #suggestions li:last-child { border-bottom: none; }
     #suggestions li:hover { background-color: #f0f0f0; }
-    
-    /* Treatment List */
     .treatments-section { margin-top: 40px; padding-top: 30px; border-top: 2px solid #667eea; }
     .treatment-item { background: #f9f9f9; padding: 15px; border-radius: 5px; margin-bottom: 10px; border-left: 4px solid #667eea; }
     .treatment-item h4 { color: #333; margin-bottom: 5px; }
     .treatment-item p { color: #666; font-size: 13px; margin: 3px 0; }
     .btn-remove { background: #dc3545; padding: 6px 12px; font-size: 12px; width: auto; margin-top: 10px; }
-    
+    .btn-record { background: #28a745; padding: 6px 12px; font-size: 12px; width: auto; margin-top: 10px; margin-right: 5px; }
     .features { margin-top: 30px; padding-top: 30px; border-top: 1px solid #eee; }
-    .feature { display: flex; align-items: center; margin-bottom: 15px; }
-    .feature-icon { width: 30px; height: 30px; background: #667eea; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; margin-right: 15px; }
-    .feature-text { color: #666; font-size: 14px; }
   </style>
 </head>
 <body>
   <div class="container">
-    <h1>MedCoach</h1>
-    <p class="subtitle">Votre coach santé personnel</p>
-    <form id="medForm">
-      <div class="form-group">
-        <label for="name">Nom</label>
-        <input type="text" id="name" name="name" placeholder="Entrez votre nom" required>
-      </div>
-      <div class="form-group">
-        <label for="email">Email</label>
-        <input type="email" id="email" name="email" placeholder="votre@email.com" required>
-      </div>
-      <div class="form-group">
-        <label for="age">Âge</label>
-        <input type="number" id="age" name="age" placeholder="Votre âge" min="1" max="150">
-      </div>
-      
-      <!-- Autocomplete Médicaments -->
-      <div class="form-group">
-        <label for="medSearch">Médicament</label>
-        <input id="medSearch" type="text" placeholder="Doliprane..." oninput="searchMed(this.value)" autocomplete="off">
-        <ul id="suggestions"></ul>
-        <input type="hidden" id="medCode" name="medCode">
-        <input type="hidden" id="medDosage" name="medDosage">
-      </div>
-      
-      <!-- Quantité et Unité -->
-      <div class="form-row">
-        <div class="form-group">
-          <label for="qte">Quantité</label>
-          <input type="number" id="qte" name="qte" placeholder="1" min="0.5" step="0.5" value="1">
-        </div>
-        <div class="form-group">
-          <label for="unit">Unité</label>
-          <select id="unit" name="unit">
-            <option value="">Sélectionner</option>
-            <option value="comprimé">Comprimé</option>
-            <option value="ml">ml</option>
-            <option value="gouttes">Gouttes</option>
-            <option value="gélule">Gélule</option>
-            <option value="sachet">Sachet</option>
-          </select>
-        </div>
-      </div>
-      
-      <div class="form-group">
-        <label for="concern">Préoccupation Santé</label>
-        <textarea id="concern" name="concern" rows="4" placeholder="Décrivez votre objectif de santé..."></textarea>
-      </div>
-      <button type="button" id="addMed">Ajouter ce médicament</button>
-      <button type="submit">Commencer</button>
-    </form>
-
-    <!-- Traitements ajoutés -->
-    <div id="treatmentsContainer" class="treatments-section" style="display: none;">
-      <h3>Mes traitements</h3>
-      <div id="treatmentsList"></div>
+    <h1>🏥 MedCoach</h1>
+    <p class="subtitle">Gestion et suivi des médicaments</p>
+    
+    <div class="form-group">
+      <label>Médicament *</label>
+      <input id="medSearch" placeholder="Doliprane..." oninput="searchMed(this.value)">
+      <ul id="suggestions"></ul>
     </div>
     
+    <div class="form-row">
+      <div class="form-group">
+        <label>Quantité *</label>
+        <input id="qte" type="number" min="1" value="1" placeholder="1">
+      </div>
+      <div class="form-group">
+        <label>Unité *</label>
+        <select id="unit">
+          <option>comprimé</option>
+          <option>ml</option>
+          <option>gélule</option>
+          <option>sachet</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label>Fréquence (intervalle) *</label>
+        <input id="freq-interval" type="number" min="1" value="1" placeholder="1">
+      </div>
+      <div class="form-group">
+        <label>Période *</label>
+        <select id="freq-period">
+          <option value="heure">heure</option>
+          <option value="jour" selected>jour</option>
+          <option value="semaine">semaine</option>
+          <option value="mois">mois</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label>Moments de prise (séparés par des virgules)</label>
+      <input id="freq-moments" placeholder="matin, midi, soir" value="matin">
+    </div>
+
+    <button onclick="addTreatment()">Ajouter le traitement</button>
+
+    <div id="treatments-list" class="treatments-section" style="display: none;">
+      <h2>Mes traitements</h2>
+      <div id="treatment-items"></div>
+    </div>
+
     <div class="features">
-      <div class="feature">
-        <div class="feature-icon">✓</div>
-        <div class="feature-text">Suivi personnalisé de votre santé</div>
-      </div>
-      <div class="feature">
-        <div class="feature-icon">✓</div>
-        <div class="feature-text">Conseils adaptés à vos besoins</div>
-      </div>
-      <div class="feature">
-        <div class="feature-icon">✓</div>
-        <div class="feature-text">Intégration avec vos données de santé</div>
-      </div>
+      <h3>Fonctionnalités</h3>
+      <ul style="margin-top: 10px; color: #666; font-size: 13px;">
+        <li>✓ Autocomplete des médicaments</li>
+        <li>✓ Gestion des traitements</li>
+        <li>✓ Système de rappels programmés</li>
+        <li>✓ Enregistrement des prises</li>
+      </ul>
     </div>
   </div>
 
   <script>
-    let abortController = null;
-    let treatments = [];
-
-    // Charger les traitements depuis localStorage au démarrage
-    function loadTreatments() {
-      const saved = localStorage.getItem('medcoach_treatments');
-      if (saved) {
-        try {
-          treatments = JSON.parse(saved);
-          displayTreatments();
-        } catch (e) {
-          console.error('Erreur lors du chargement des traitements', e);
-        }
-      }
-    }
-
-    // Sauvegarder les traitements dans localStorage
-    function saveTreatments() {
-      localStorage.setItem('medcoach_treatments', JSON.stringify(treatments));
-    }
-
-    // Afficher les traitements
-    function displayTreatments() {
-      const container = document.getElementById('treatmentsContainer');
-      const list = document.getElementById('treatmentsList');
-      
-      if (treatments.length === 0) {
-        container.style.display = 'none';
-        return;
-      }
-      
-      container.style.display = 'block';
-      list.innerHTML = treatments.map((t, idx) => `
-        <div class="treatment-item">
-          <h4>${t.name}</h4>
-          <p><strong>Code:</strong> ${t.code}</p>
-          <p><strong>Dosage:</strong> ${t.dosage || 'N/A'}</p>
-          <p><strong>Quantité:</strong> ${t.qte} ${t.unit}</p>
-          <button type="button" class="btn-remove" onclick="removeTreatment(${idx})">Supprimer</button>
-        </div>
-      `).join('');
-    }
-
-    // Supprimer un traitement
-    function removeTreatment(idx) {
-      treatments.splice(idx, 1);
-      saveTreatments();
-      displayTreatments();
-    }
+    let treatments = JSON.parse(localStorage.getItem('treatments')) || [];
+    displayTreatments();
 
     async function searchMed(query) {
-      const suggestions = document.getElementById('suggestions');
-
       if (query.length < 3) {
-        suggestions.innerHTML = '';
-        suggestions.classList.remove('active');
+        document.getElementById('suggestions').innerHTML = '';
         return;
       }
-
-      if (abortController) {
-        abortController.abort();
-      }
-      abortController = new AbortController();
-
       try {
-        const res = await fetch(
-          `https://api-medicaments.fr/autocomplete?query=${encodeURIComponent(query)}`,
-          { signal: abortController.signal }
-        );
-
-        if (!res.ok) {
-          console.error('Erreur API', res.status);
-          suggestions.innerHTML = '';
-          suggestions.classList.remove('active');
-          return;
-        }
-
-        const meds = await res.json();
-
-        suggestions.innerHTML = meds
-          .map(m => `
-            <li onclick="selectMed('${m.code}', '${escapeQuotes(m.name)}', '${escapeQuotes(m.dosage || '')}')">
-              ${m.name} ${m.dosage ? `(${m.dosage})` : ''}
-            </li>
-          `)
-          .join('');
-        
-        if (meds.length > 0) {
-          suggestions.classList.add('active');
-        } else {
-          suggestions.classList.remove('active');
-        }
-      } catch (e) {
-        if (e.name !== 'AbortError') {
-          console.error('Erreur réseau', e);
-          suggestions.innerHTML = '';
-          suggestions.classList.remove('active');
-        }
+        const response = await fetch(`https://api-medicaments.fr/medecines?name=${query}`);
+        const data = await response.json();
+        const suggestions = document.getElementById('suggestions');
+        suggestions.innerHTML = '';
+        data.forEach(med => {
+          const li = document.createElement('li');
+          li.textContent = med.name;
+          li.onclick = () => selectMed(med.name);
+          suggestions.appendChild(li);
+        });
+        suggestions.classList.add('active');
+      } catch (error) {
+        console.error('Erreur API:', error);
       }
     }
 
-    function escapeQuotes(str = '') {
-      return String(str).replace(/'/g, "\\\\'").replace(/"/g, '&quot;');
-    }
-
-    function selectMed(code, name, dosage) {
+    function selectMed(name) {
       document.getElementById('medSearch').value = name;
       document.getElementById('suggestions').innerHTML = '';
       document.getElementById('suggestions').classList.remove('active');
-
-      const codeInput = document.getElementById('medCode');
-      const dosageInput = document.getElementById('medDosage');
-
-      if (codeInput) codeInput.value = code;
-      if (dosageInput) dosageInput.value = dosage;
-
-      // Initialiser la quantité et l'unité par défaut
       document.getElementById('qte').value = 1;
-      document.getElementById('unit').innerHTML = '<option value="">Sélectionner</option><option value="comprimé" selected>Comprimé</option><option value="ml">ml</option><option value="gouttes">Gouttes</option><option value="gélule">Gélule</option><option value="sachet">Sachet</option>';
     }
 
-    // Ajouter le médicament aux traitements
-    document.getElementById('addMed').addEventListener('click', function() {
-      const medName = document.getElementById('medSearch').value;
-      const medCode = document.getElementById('medCode').value;
-      const qte = document.getElementById('qte').value;
+    function addTreatment() {
+      const med = document.getElementById('medSearch').value.trim();
+      const qte = parseInt(document.getElementById('qte').value) || 1;
       const unit = document.getElementById('unit').value;
-      const dosage = document.getElementById('medDosage').value;
+      const freqInterval = parseInt(document.getElementById('freq-interval').value) || 1;
+      const freqPeriod = document.getElementById('freq-period').value;
+      const freqMoments = document.getElementById('freq-moments').value.split(',').map(m => m.trim());
 
-      if (!medName || !medCode || !qte || !unit) {
-        alert('Veuillez remplir tous les champs du médicament');
+      if (!med) {
+        alert('Veuillez entrer un médicament');
         return;
       }
 
       const treatment = {
-        code: medCode,
-        name: medName,
-        dosage: dosage,
-        qte: parseFloat(qte),
-        unit: unit
+        id: Date.now(),
+        name: med,
+        qte: qte,
+        unit: unit,
+        freq: {
+          interval: freqInterval,
+          period: freqPeriod,
+          moments: freqMoments
+        },
+        createdAt: new Date().toISOString(),
+        history: []
       };
 
       treatments.push(treatment);
-      saveTreatments();
-      displayTreatments();
-
-      // Réinitialiser le formulaire
+      localStorage.setItem('treatments', JSON.stringify(treatments));
+      scheduleReminder(treatment);
+      
       document.getElementById('medSearch').value = '';
-      document.getElementById('medCode').value = '';
-      document.getElementById('medDosage').value = '';
       document.getElementById('qte').value = 1;
-      document.getElementById('unit').selectedIndex = 0;
-    });
+      document.getElementById('freq-interval').value = 1;
+      document.getElementById('freq-moments').value = 'matin';
+      
+      displayTreatments();
+    }
 
-    // Charger les traitements au démarrage
-    loadTreatments();
+    function displayTreatments() {
+      const container = document.getElementById('treatment-items');
+      const section = document.getElementById('treatments-list');
+      
+      if (treatments.length === 0) {
+        section.style.display = 'none';
+        return;
+      }
+
+      section.style.display = 'block';
+      container.innerHTML = '';
+
+      treatments.forEach(treatment => {
+        const item = document.createElement('div');
+        item.className = 'treatment-item';
+        const nextReminder = getNextReminder(treatment);
+        item.innerHTML = `
+          <h4>${treatment.name}</h4>
+          <p>Dosage: ${treatment.qte} ${treatment.unit}</p>
+          <p>Fréquence: ${treatment.freq.interval}x par ${treatment.freq.period}</p>
+          <p>Moments: ${treatment.freq.moments.join(', ')}</p>
+          <p>Prochain rappel: ${nextReminder}</p>
+          <button class="btn-record" onclick="onPris(${treatment.id})">Pris ✓</button>
+          <button class="btn-remove" onclick="removeTreatment(${treatment.id})">Supprimer</button>
+        `;
+        container.appendChild(item);
+      });
+    }
+
+    function scheduleReminder(treatment) {
+      const now = new Date();
+      const momentMap = {
+        'matin': 8,
+        'midi': 12,
+        'après-midi': 15,
+        'soir': 20,
+        'nuit': 22
+      };
+
+      treatment.freq.moments.forEach(moment => {
+        const hour = momentMap[moment.toLowerCase()] || 12;
+        const nextTime = new Date();
+        nextTime.setHours(hour, 0, 0);
+
+        if (nextTime < now) {
+          nextTime.setDate(nextTime.getDate() + 1);
+        }
+
+        const timeout = nextTime.getTime() - now.getTime();
+        
+        if (timeout > 0) {
+          setTimeout(() => {
+            console.log(`Rappel: Prendre ${treatment.name} (${treatment.qte} ${treatment.unit})`);
+            console.log(`Historique: ${moment} - ${new Date().toLocaleTimeString()}`);
+          }, timeout);
+        }
+      });
+    }
+
+    function onPris(treatmentId) {
+      const treatment = treatments.find(t => t.id === treatmentId);
+      if (treatment) {
+        treatment.history.push({
+          takenAt: new Date().toISOString(),
+          moment: new Date().toLocaleTimeString()
+        });
+        localStorage.setItem('treatments', JSON.stringify(treatments));
+        alert(`${treatment.name} enregistré comme pris`);
+        displayTreatments();
+      }
+    }
+
+    function removeTreatment(treatmentId) {
+      treatments = treatments.filter(t => t.id !== treatmentId);
+      localStorage.setItem('treatments', JSON.stringify(treatments));
+      displayTreatments();
+    }
+
+    function getNextReminder(treatment) {
+      const now = new Date();
+      const momentMap = {
+        'matin': 8,
+        'midi': 12,
+        'après-midi': 15,
+        'soir': 20,
+        'nuit': 22
+      };
+
+      let nextTime = null;
+      treatment.freq.moments.forEach(moment => {
+        const hour = momentMap[moment.toLowerCase()] || 12;
+        const time = new Date();
+        time.setHours(hour, 0, 0);
+
+        if (time < now) {
+          time.setDate(time.getDate() + 1);
+        }
+
+        if (!nextTime || time < nextTime) {
+          nextTime = time;
+        }
+      });
+
+      return nextTime ? nextTime.toLocaleString('fr-FR') : 'Pas de rappel';
+    }
   </script>
 </body>
 </html>
