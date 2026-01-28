@@ -94,11 +94,25 @@
         <li>✓ Gestion des traitements</li>
         <li>✓ Système de rappels programmés</li>
         <li>✓ Enregistrement des prises</li>
+        <li>✓ Notifications push avec vibration</li>
       </ul>
     </div>
   </div>
 
   <script>
+    // Enregistrer le Service Worker
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('sw.js').then(registration => {
+        console.log('Service Worker enregistré:', registration);
+        // Demander la permission pour les notifications
+        if (Notification.permission === 'default') {
+          Notification.requestPermission();
+        }
+      }).catch(error => {
+        console.error('Erreur lors de l\'enregistrement du Service Worker:', error);
+      });
+    }
+
     let treatments = JSON.parse(localStorage.getItem('treatments')) || [];
     displayTreatments();
 
@@ -222,11 +236,27 @@
         
         if (timeout > 0) {
           setTimeout(() => {
-            console.log(`Rappel: Prendre ${treatment.name} (${treatment.qte} ${treatment.unit})`);
-            console.log(`Historique: ${moment} - ${new Date().toLocaleTimeString()}`);
+            sendNotification(treatment, moment);
           }, timeout);
         }
       });
+    }
+
+    function sendNotification(treatment, moment) {
+      if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+        navigator.serviceWorker.controller.postMessage({
+          type: 'SEND_NOTIFICATION',
+          title: `Rappel MedCoach - ${moment}`,
+          body: `Prendre ${treatment.qte} ${treatment.unit} de ${treatment.name}`
+        });
+      } else if ('Notification' in window) {
+        new Notification(`Rappel MedCoach - ${moment}`, {
+          body: `Prendre ${treatment.qte} ${treatment.unit} de ${treatment.name}`,
+          icon: 'pilule.png',
+          badge: 'pilule.png',
+          vibrate: [200, 100, 200]
+        });
+      }
     }
 
     function onPris(treatmentId) {
