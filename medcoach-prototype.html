@@ -3,307 +3,232 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>MedCoach - Prototype</title>
+  <title>MedCoach - Dashboard Alpha</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; display: flex; justify-content: center; align-items: center; padding: 20px; }
-    .container { background: white; border-radius: 10px; box-shadow: 0 10px 40px rgba(0,0,0,0.3); max-width: 500px; width: 100%; padding: 40px; }
-    h1 { color: #333; margin-bottom: 10px; text-align: center; }
-    .subtitle { color: #666; text-align: center; margin-bottom: 30px; font-size: 14px; }
-    .form-group { margin-bottom: 20px; position: relative; }
-    .form-row { display: flex; gap: 15px; }
-    .form-row .form-group { flex: 1; }
-    label { display: block; margin-bottom: 8px; color: #333; font-weight: 500; }
-    input, textarea, select { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px; font-family: inherit; }
-    input:focus, textarea:focus, select:focus { outline: none; border-color: #667eea; box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1); }
-    button { width: 100%; padding: 12px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 5px; font-size: 16px; font-weight: 600; cursor: pointer; }
-    button:hover { opacity: 0.9; }
-    #suggestions { list-style: none; position: absolute; top: 100%; left: 0; right: 0; background: white; border: 1px solid #ddd; border-top: none; border-radius: 0 0 5px 5px; max-height: 200px; overflow-y: auto; z-index: 100; display: none; }
+    body { font-family: 'Segoe UI', sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; display: flex; justify-content: center; padding: 20px; }
+    .container { background: white; border-radius: 12px; box-shadow: 0 10px 40px rgba(0,0,0,0.3); max-width: 500px; width: 100%; padding: 30px; }
+    h1 { text-align: center; color: #333; margin-bottom: 5px; }
+    .subtitle { text-align: center; color: #666; font-size: 14px; margin-bottom: 25px; }
+
+    /* Dashboard Stats */
+    .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 25px; }
+    .stat-box { background: #f8f9fa; padding: 15px; border-radius: 10px; text-align: center; border: 1px solid #eee; }
+    .stat-box.full { grid-column: span 2; background: #eef2ff; border-color: #667eea; }
+    .stat-label { font-size: 11px; text-transform: uppercase; color: #888; letter-spacing: 0.5px; margin-bottom: 5px; display: block; }
+    .stat-value { font-size: 22px; font-weight: 700; color: #667eea; }
+    .streak-val { color: #ff4757; }
+
+    /* Form */
+    .form-group { margin-bottom: 15px; position: relative; }
+    label { display: block; margin-bottom: 6px; font-weight: 600; color: #444; font-size: 13px; }
+    input, select { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; }
+    button { width: 100%; padding: 12px; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; transition: 0.2s; }
+    .btn-main { background: #667eea; color: white; margin-top: 10px; }
+    .btn-test { background: #f1f2f6; color: #667eea; font-size: 12px; margin-top: 10px; border: 1px dashed #667eea; }
+
+    /* Suggestions */
+    #suggestions { list-style: none; position: absolute; top: 100%; left: 0; right: 0; background: white; border: 1px solid #ddd; border-radius: 0 0 6px 6px; max-height: 180px; overflow-y: auto; z-index: 100; display: none; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
     #suggestions.active { display: block; }
-    #suggestions li { padding: 10px; border-bottom: 1px solid #eee; cursor: pointer; }
-    #suggestions li:last-child { border-bottom: none; }
-    #suggestions li:hover { background-color: #f0f0f0; }
-    .treatments-section { margin-top: 40px; padding-top: 30px; border-top: 2px solid #667eea; }
-    .treatment-item { background: #f9f9f9; padding: 15px; border-radius: 5px; margin-bottom: 10px; border-left: 4px solid #667eea; }
-    .treatment-item h4 { color: #333; margin-bottom: 5px; }
-    .treatment-item p { color: #666; font-size: 13px; margin: 3px 0; }
-    .btn-remove { background: #dc3545; padding: 6px 12px; font-size: 12px; width: auto; margin-top: 10px; }
-    .btn-record { background: #28a745; padding: 6px 12px; font-size: 12px; width: auto; margin-top: 10px; margin-right: 5px; }
-    .features { margin-top: 30px; padding-top: 30px; border-top: 1px solid #eee; }
+    #suggestions li { padding: 10px; border-bottom: 1px solid #f0f0f0; cursor: pointer; font-size: 13px; }
+    #suggestions li:hover { background: #f8f9fa; }
+
+    /* List */
+    .treatment-list { margin-top: 30px; }
+    .item { background: #fff; border: 1px solid #eee; padding: 15px; border-radius: 10px; margin-bottom: 12px; border-left: 5px solid #667eea; position: relative; }
+    .item h4 { color: #333; margin-bottom: 4px; }
+    .item p { font-size: 12px; color: #777; line-height: 1.4; }
+    .actions { display: flex; gap: 8px; margin-top: 10px; }
+    .btn-pris { background: #2ed573; color: white; padding: 6px 12px; font-size: 12px; width: auto; }
+    .btn-del { background: #ff4757; color: white; padding: 6px 12px; font-size: 12px; width: auto; }
   </style>
 </head>
 <body>
   <div class="container">
     <h1>🏥 MedCoach</h1>
-    <p class="subtitle">Gestion et suivi des médicaments</p>
-    
+    <p class="subtitle">Alpha - Suivi Personnel</p>
+
+    <div class="stats-grid">
+      <div class="stat-box full">
+        <span class="stat-label">🔥 Streak Actuel</span>
+        <div class="stat-value streak-val" id="streak">0 jours</div>
+      </div>
+      <div class="stat-box">
+        <span class="stat-label">📈 Adhérence (7j)</span>
+        <div class="stat-value" id="adh7">0%</div>
+      </div>
+      <div class="stat-box">
+        <span class="stat-label">⏰ À l'heure</span>
+        <div class="stat-value" id="ontime">0%</div>
+      </div>
+    </div>
+
     <div class="form-group">
-      <label>Médicament *</label>
-      <input id="medSearch" placeholder="Doliprane..." oninput="searchMed(this.value)">
+      <label>Médicament (BDPM)</label>
+      <input id="medSearch" placeholder="Rechercher..." oninput="searchMed(this.value)">
       <ul id="suggestions"></ul>
     </div>
-    
-    <div class="form-row">
-      <div class="form-group">
-        <label>Quantité *</label>
-        <input id="qte" type="number" min="1" value="1" placeholder="1">
+
+    <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+      <div style="flex: 1;">
+        <label>Quantité</label>
+        <input id="qte" type="number" value="1" min="1">
       </div>
-      <div class="form-group">
-        <label>Unité *</label>
+      <div style="flex: 1;">
+        <label>Unité</label>
         <select id="unit">
           <option>comprimé</option>
-          <option>ml</option>
           <option>gélule</option>
+          <option>ml</option>
           <option>sachet</option>
         </select>
       </div>
     </div>
 
-    <div class="form-row">
-      <div class="form-group">
-        <label>Fréquence (intervalle) *</label>
-        <input id="freq-interval" type="number" min="1" value="1" placeholder="1">
-      </div>
-      <div class="form-group">
-        <label>Période *</label>
-        <select id="freq-period">
-          <option value="heure">heure</option>
-          <option value="jour" selected>jour</option>
-          <option value="semaine">semaine</option>
-          <option value="mois">mois</option>
-        </select>
-      </div>
-    </div>
-
     <div class="form-group">
-      <label>Moments de prise (séparés par des virgules)</label>
-      <input id="freq-moments" placeholder="matin, midi, soir" value="matin">
+      <label>Moments (ex: matin, midi, soir)</label>
+      <input id="moments" placeholder="matin, soir" value="matin">
     </div>
 
-    <button onclick="addTreatment()">Ajouter le traitement</button>
+    <button class="btn-main" onclick="addTreatment()">Ajouter le traitement</button>
+    <button class="btn-test" onclick="testIn10Min()">🔔 Tester un rappel dans 10 min</button>
 
-    <div id="treatments-list" class="treatments-section" style="display: none;">
-      <h2>Mes traitements</h2>
-      <div id="treatment-items"></div>
-    </div>
-
-    <div class="features">
-      <h3>Fonctionnalités</h3>
-      <ul style="margin-top: 10px; color: #666; font-size: 13px;">
-        <li>✓ Autocomplete des médicaments</li>
-        <li>✓ Gestion des traitements</li>
-        <li>✓ Système de rappels programmés</li>
-        <li>✓ Enregistrement des prises</li>
-        <li>✓ Notifications push avec vibration</li>
-      </ul>
-    </div>
+    <div class="treatment-list" id="list"></div>
   </div>
 
   <script>
-    // Enregistrer le Service Worker
+    // 1. Initialisation & SW
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('sw.js').then(registration => {
-        console.log('Service Worker enregistré:', registration);
-        // Demander la permission pour les notifications
-        if (Notification.permission === 'default') {
-          Notification.requestPermission();
-        }
-      }).catch(error => {
-        console.error('Erreur lors de l\'enregistrement du Service Worker:', error);
-      });
+      navigator.serviceWorker.register('sw.js');
     }
 
     let treatments = JSON.parse(localStorage.getItem('treatments')) || [];
-    displayTreatments();
+    render();
 
-    async function searchMed(query) {
-      if (query.length < 3) {
-        document.getElementById('suggestions').innerHTML = '';
-        return;
-      }
-      try {
-        const response = await fetch(`https://api-medicaments.fr/medecines?name=${query}`);
-        const data = await response.json();
-        const suggestions = document.getElementById('suggestions');
-        suggestions.innerHTML = '';
-        data.forEach(med => {
-          const li = document.createElement('li');
-          li.textContent = med.name;
-          li.onclick = () => selectMed(med.name);
-          suggestions.appendChild(li);
-        });
-        suggestions.classList.add('active');
-      } catch (error) {
-        console.error('Erreur API:', error);
-      }
+    // 2. Autocomplete BDPM
+    async function searchMed(q) {
+      if (q.length < 3) return document.getElementById('suggestions').innerHTML = '';
+      const r = await fetch(`https://api-medicaments.fr/medecines?name=${q}`);
+      const data = await r.json();
+      const s = document.getElementById('suggestions');
+      s.innerHTML = '';
+      data.slice(0, 10).forEach(m => {
+        const li = document.createElement('li');
+        li.textContent = m.name;
+        li.onclick = () => {
+          document.getElementById('medSearch').value = m.name;
+          s.classList.remove('active');
+        };
+        s.appendChild(li);
+      });
+      s.classList.add('active');
     }
 
-    function selectMed(name) {
-      document.getElementById('medSearch').value = name;
-      document.getElementById('suggestions').innerHTML = '';
-      document.getElementById('suggestions').classList.remove('active');
-      document.getElementById('qte').value = 1;
-    }
-
+    // 3. Gestion Traitements
     function addTreatment() {
-      const med = document.getElementById('medSearch').value.trim();
-      const qte = parseInt(document.getElementById('qte').value) || 1;
-      const unit = document.getElementById('unit').value;
-      const freqInterval = parseInt(document.getElementById('freq-interval').value) || 1;
-      const freqPeriod = document.getElementById('freq-period').value;
-      const freqMoments = document.getElementById('freq-moments').value.split(',').map(m => m.trim());
-
-      if (!med) {
-        alert('Veuillez entrer un médicament');
-        return;
-      }
-
-      const treatment = {
+      const name = document.getElementById('medSearch').value;
+      if (!name) return alert('Nom requis');
+      
+      const t = {
         id: Date.now(),
-        name: med,
-        qte: qte,
-        unit: unit,
-        freq: {
-          interval: freqInterval,
-          period: freqPeriod,
-          moments: freqMoments
-        },
-        createdAt: new Date().toISOString(),
+        name,
+        qte: document.getElementById('qte').value,
+        unit: document.getElementById('unit').value,
+        moments: document.getElementById('moments').value.split(',').map(x => x.trim()),
         history: []
       };
-
-      treatments.push(treatment);
-      localStorage.setItem('treatments', JSON.stringify(treatments));
-      scheduleReminder(treatment);
       
+      treatments.push(t);
+      save();
+      render();
       document.getElementById('medSearch').value = '';
-      document.getElementById('qte').value = 1;
-      document.getElementById('freq-interval').value = 1;
-      document.getElementById('freq-moments').value = 'matin';
-      
-      displayTreatments();
     }
 
-    function displayTreatments() {
-      const container = document.getElementById('treatment-items');
-      const section = document.getElementById('treatments-list');
-      
-      if (treatments.length === 0) {
-        section.style.display = 'none';
-        return;
-      }
-
-      section.style.display = 'block';
-      container.innerHTML = '';
-
-      treatments.forEach(treatment => {
-        const item = document.createElement('div');
-        item.className = 'treatment-item';
-        const nextReminder = getNextReminder(treatment);
-        item.innerHTML = `
-          <h4>${treatment.name}</h4>
-          <p>Dosage: ${treatment.qte} ${treatment.unit}</p>
-          <p>Fréquence: ${treatment.freq.interval}x par ${treatment.freq.period}</p>
-          <p>Moments: ${treatment.freq.moments.join(', ')}</p>
-          <p>Prochain rappel: ${nextReminder}</p>
-          <button class="btn-record" onclick="onPris(${treatment.id})">Pris ✓</button>
-          <button class="btn-remove" onclick="removeTreatment(${treatment.id})">Supprimer</button>
-        `;
-        container.appendChild(item);
-      });
-    }
-
-    function scheduleReminder(treatment) {
+    function onPris(id) {
+      const t = treatments.find(x => x.id === id);
       const now = new Date();
-      const momentMap = {
-        'matin': 8,
-        'midi': 12,
-        'après-midi': 15,
-        'soir': 20,
-        'nuit': 22
-      };
-
-      treatment.freq.moments.forEach(moment => {
-        const hour = momentMap[moment.toLowerCase()] || 12;
-        const nextTime = new Date();
-        nextTime.setHours(hour, 0, 0);
-
-        if (nextTime < now) {
-          nextTime.setDate(nextTime.getDate() + 1);
-        }
-
-        const timeout = nextTime.getTime() - now.getTime();
-        
-        if (timeout > 0) {
-          setTimeout(() => {
-            sendNotification(treatment, moment);
-          }, timeout);
-        }
-      });
+      // On considère "à l'heure" si pris avant 10h pour le matin
+      const isLate = now.getHours() >= 10; 
+      t.history.push({ date: now.toISOString(), isLate });
+      save();
+      render();
     }
 
-    function sendNotification(treatment, moment) {
-      if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
-        navigator.serviceWorker.controller.postMessage({
-          type: 'SEND_NOTIFICATION',
-          title: `Rappel MedCoach - ${moment}`,
-          body: `Prendre ${treatment.qte} ${treatment.unit} de ${treatment.name}`
-        });
-      } else if ('Notification' in window) {
-        new Notification(`Rappel MedCoach - ${moment}`, {
-          body: `Prendre ${treatment.qte} ${treatment.unit} de ${treatment.name}`,
-          icon: 'pilule.png',
-          badge: 'pilule.png',
-          vibrate: [200, 100, 200]
-        });
-      }
+    function remove(id) {
+      treatments = treatments.filter(x => x.id !== id);
+      save();
+      render();
     }
 
-    function onPris(treatmentId) {
-      const treatment = treatments.find(t => t.id === treatmentId);
-      if (treatment) {
-        treatment.history.push({
-          takenAt: new Date().toISOString(),
-          moment: new Date().toLocaleTimeString()
-        });
-        localStorage.setItem('treatments', JSON.stringify(treatments));
-        alert(`${treatment.name} enregistré comme pris`);
-        displayTreatments();
-      }
-    }
-
-    function removeTreatment(treatmentId) {
-      treatments = treatments.filter(t => t.id !== treatmentId);
+    function save() {
       localStorage.setItem('treatments', JSON.stringify(treatments));
-      displayTreatments();
     }
 
-    function getNextReminder(treatment) {
-      const now = new Date();
-      const momentMap = {
-        'matin': 8,
-        'midi': 12,
-        'après-midi': 15,
-        'soir': 20,
-        'nuit': 22
-      };
-
-      let nextTime = null;
-      treatment.freq.moments.forEach(moment => {
-        const hour = momentMap[moment.toLowerCase()] || 12;
-        const time = new Date();
-        time.setHours(hour, 0, 0);
-
-        if (time < now) {
-          time.setDate(time.getDate() + 1);
-        }
-
-        if (!nextTime || time < nextTime) {
-          nextTime = time;
-        }
+    // 4. Stats & Rendu
+    function render() {
+      const list = document.getElementById('list');
+      list.innerHTML = treatments.length ? '<h3>Mes Traitements</h3>' : '';
+      
+      treatments.forEach(t => {
+        const div = document.createElement('div');
+        div.className = 'item';
+        div.innerHTML = `
+          <h4>${t.name}</h4>
+          <p>${t.qte} ${t.unit} • ${t.moments.join(', ')}</p>
+          <div class="actions">
+            <button class="btn-pris" onclick="onPris(${t.id})">Pris ✓</button>
+            <button class="btn-del" onclick="remove(${t.id})">Suppr.</button>
+          </div>
+        `;
+        list.appendChild(div);
       });
+      
+      updateStats();
+    }
 
-      return nextTime ? nextTime.toLocaleString('fr-FR') : 'Pas de rappel';
+    function updateStats() {
+      const hist = treatments.flatMap(t => t.history);
+      if (!hist.length) return;
+
+      // Adhérence 7j
+      const dates = [...new Set(hist.map(h => h.date.split('T')[0]))];
+      const last7 = [...Array(7)].map((_, i) => {
+        const d = new Date(); d.setDate(d.getDate() - i);
+        return d.toISOString().split('T')[0];
+      });
+      const hit = last7.filter(d => dates.includes(d)).length;
+      document.getElementById('adh7').textContent = Math.round((hit/7)*100) + '%';
+
+      // À l'heure
+      const ont = hist.filter(h => !h.isLate).length;
+      document.getElementById('ontime').textContent = Math.round((ont/hist.length)*100) + '%';
+
+      // Streak
+      let streak = 0;
+      let checkDate = new Date().toISOString().split('T')[0];
+      while (dates.includes(checkDate)) {
+        streak++;
+        const d = new Date(checkDate);
+        d.setDate(d.getDate() - 1);
+        checkDate = d.toISOString().split('T')[0];
+      }
+      document.getElementById('streak').textContent = streak + ' jours';
+    }
+
+    // 5. Test Rappel 10 min
+    function testIn10Min() {
+      alert('Rappel de test configuré pour dans 10 minutes ! Gardez l\'onglet ouvert.');
+      setTimeout(() => {
+        if ('Notification' in window && Notification.permission === 'granted') {
+          new Notification('🧪 TEST MedCoach (10min)', {
+            body: 'C\'est l\'heure de votre test ! Tout fonctionne parfaitement.',
+            icon: 'pilule.png',
+            vibrate: [200, 100, 200]
+          });
+        } else {
+          alert('🔔 TEST : C\'est l\'heure ! (Les notifications ne sont pas autorisées)');
+        }
+      }, 10 * 60 * 1000);
     }
   </script>
 </body>
