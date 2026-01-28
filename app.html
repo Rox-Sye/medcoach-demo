@@ -1,0 +1,378 @@
+tify-content: space-between;
+      align-items: center;
+      margin-bottom: 30px;
+      padding-bottom: 20px;
+      border-bottom: 2px solid #f0f0f0;
+    }
+    
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-bottom: 30px;
+    }
+    
+    .stat-card {
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      color: white;
+      padding: 15px;
+      border-radius: 10px;
+      text-align: center;
+    }
+    
+    .stat-value {
+      font-size: 28px;
+      font-weight: 700;
+      margin-bottom: 5px;
+    }
+    
+    .stat-label {
+      font-size: 12px;
+      opacity: 0.9;
+    }
+    
+    .med-item {
+      background: #f8f9fa;
+      padding: 15px;
+      border-radius: 10px;
+      margin-bottom: 10px;
+      border: 2px solid #e0e0e0;
+    }
+    
+    .med-name {
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: #333;
+    }
+    
+    .med-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 10px;
+    }
+    
+    .btn-small {
+      flex: 1;
+      padding: 8px;
+      font-size: 14px;
+      margin: 0;
+    }
+    
+    .btn-taken {
+      background: #4CAF50;
+    }
+    
+    .btn-delete {
+      background: #ff4444;
+    }
+    
+    .search-box {
+      position: relative;
+      margin-bottom: 20px;
+    }
+    
+    .suggestions {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      background: white;
+      border: 2px solid #e0e0e0;
+      border-top: none;
+      border-radius: 0 0 8px 8px;
+      max-height: 200px;
+      overflow-y: auto;
+      z-index: 100;
+      display: none;
+    }
+    
+    .suggestions.active {
+      display: block;
+    }
+    
+    .suggestions li {
+      list-style: none;
+      padding: 12px;
+      cursor: pointer;
+      border-bottom: 1px solid #f0f0f0;
+    }
+    
+    .suggestions li:hover {
+      background: #f8f9ff;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  
+  <!-- ÉCRAN 1 : ONBOARDING -->
+  <div id="onboarding">
+    <div class="logo">💊</div>
+    <h1>Bienvenue sur MedCoach</h1>
+    
+    <div class="form-group">
+      <label>Votre prénom</label>
+      <input type="text" id="userName" placeholder="Ex: Marie">
+    </div>
+    
+    <div class="form-group">
+      <label>Âge</label>
+      <input type="number" id="userAge" placeholder="Ex: 45" min="1" max="120">
+    </div>
+    
+    <button onclick="startApp()">🚀 Commencer</button>
+  </div>
+  
+  <!-- ÉCRAN 2 : DASHBOARD -->
+  <div id="dashboard" class="hidden">
+    <div class="header">
+      <h1 id="greeting">Bonjour 👋</h1>
+    </div>
+    
+    <div class="stats">
+      <div class="stat-card">
+        <div class="stat-value" id="streakValue">0</div>
+        <div class="stat-label">🔥 Jours</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="totalMeds">0</div>
+        <div class="stat-label">💊 Médocs</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="totalTakes">0</div>
+        <div class="stat-label">✅ Prises</div>
+      </div>
+    </div>
+    
+    <h2 style="margin-bottom:15px; font-size:20px">➕ Ajouter un médicament</h2>
+    
+    <div class="search-box">
+      <input type="text" id="medSearch" placeholder="🔍 Rechercher (ex: doliprane)..." oninput="searchMed(this.value)">
+      <ul class="suggestions" id="suggestions"></ul>
+    </div>
+    
+    <div class="form-group">
+      <label>Quantité</label>
+      <input type="number" id="medQty" value="1" min="0.25" step="0.25">
+    </div>
+    
+    <div class="form-group">
+      <label>Unité</label>
+      <select id="medUnit">
+        <option value="comprimé">Comprimé</option>
+        <option value="gélule">Gélule</option>
+        <option value="ml">ml</option>
+        <option value="gouttes">Gouttes</option>
+        <option value="sachet">Sachet</option>
+      </select>
+    </div>
+    
+    <button onclick="addMed()">➕ Ajouter</button>
+    
+    <h2 style="margin:30px 0 15px; font-size:20px">📋 Mes médicaments</h2>
+    <div id="medList"></div>
+    
+    <button class="btn-secondary" onclick="resetApp()" style="margin-top:30px">🔄 Réinitialiser</button>
+  </div>
+  
+</div>
+
+<script>
+// === VARIABLES ===
+let meds = [];
+let takes = [];
+let currentMedName = '';
+
+// === INITIALISATION ===
+window.addEventListener('load', () => {
+  const profile = localStorage.getItem('mc_profile');
+  
+  if (profile) {
+    showDashboard();
+  } else {
+    document.getElementById('onboarding').classList.remove('hidden');
+  }
+});
+
+// === ONBOARDING ===
+function startApp() {
+  const name = document.getElementById('userName').value.trim();
+  const age = document.getElementById('userAge').value;
+  
+  if (!name || !age) {
+    alert('⚠️ Remplissez tous les champs');
+    return;
+  }
+  
+  localStorage.setItem('mc_profile', JSON.stringify({ name, age }));
+  showDashboard();
+}
+
+function showDashboard() {
+  document.getElementById('onboarding').classList.add('hidden');
+  document.getElementById('dashboard').classList.remove('hidden');
+  
+  const profile = JSON.parse(localStorage.getItem('mc_profile') || '{}');
+  document.getElementById('greeting').textContent = 'Bonjour ' + profile.name + ' 👋';
+  
+  loadData();
+  updateStats();
+  displayMeds();
+}
+
+// === DONNÉES ===
+function loadData() {
+  meds = JSON.parse(localStorage.getItem('mc_meds') || '[]');
+  takes = JSON.parse(localStorage.getItem('mc_takes') || '[]');
+}
+
+function saveData() {
+  localStorage.setItem('mc_meds', JSON.stringify(meds));
+  localStorage.setItem('mc_takes', JSON.stringify(takes));
+}
+
+// === AUTOCOMPLETE ===
+let searchTimeout;
+async function searchMed(query) {
+  clearTimeout(searchTimeout);
+  
+  const suggestions = document.getElementById('suggestions');
+  
+  if (query.length < 3) {
+    suggestions.classList.remove('active');
+    return;
+  }
+  
+  searchTimeout = setTimeout(async () => {
+    try {
+      const res = await fetch(`https://api-medicaments.fr/autocomplete?query=${encodeURIComponent(query)}`);
+      const data = await res.json();
+      
+      suggestions.innerHTML = data.slice(0, 8).map(m => 
+        `<li onclick="selectMed('${m.name.replace(/'/g, "\\'")}')">${m.name}</li>`
+      ).join('');
+      
+      suggestions.classList.add('active');
+    } catch (e) {
+      console.error('Erreur API:', e);
+      suggestions.classList.remove('active');
+    }
+  }, 300);
+}
+
+function selectMed(name) {
+  currentMedName = name;
+  document.getElementById('medSearch').value = name;
+  document.getElementById('suggestions').classList.remove('active');
+}
+
+// === AJOUT MÉDICAMENT ===
+function addMed() {
+  const name = currentMedName || document.getElementById('medSearch').value.trim();
+  const qty = document.getElementById('medQty').value;
+  const unit = document.getElementById('medUnit').value;
+  
+  if (!name || !qty || !unit) {
+    alert('⚠️ Remplissez tous les champs');
+    return;
+  }
+  
+  meds.push({
+    id: Date.now(),
+    name: name,
+    qty: parseFloat(qty),
+    unit: unit
+  });
+  
+  saveData();
+  displayMeds();
+  updateStats();
+  
+  // Reset
+  document.getElementById('medSearch').value = '';
+  document.getElementById('medQty').value = '1';
+  currentMedName = '';
+  
+  alert('✅ Médicament ajouté !');
+}
+
+// === AFFICHAGE ===
+function displayMeds() {
+  const list = document.getElementById('medList');
+  
+  if (meds.length === 0) {
+    list.innerHTML = '<p style="color:#999; text-align:center">Aucun médicament ajouté</p>';
+    return;
+  }
+  
+  list.innerHTML = meds.map((m, idx) => `
+    <div class="med-item">
+      <div class="med-name">${m.name}</div>
+      <p style="color:#666; font-size:14px">${m.qty} ${m.unit}</p>
+      <div class="med-actions">
+        <button class="btn-small btn-taken" onclick="markTaken(${m.id})">✅ Pris</button>
+        <button class="btn-small btn-delete" onclick="deleteMed(${idx})">🗑️</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+// === ACTIONS ===
+function markTaken(medId) {
+  takes.push({
+    medId: medId,
+    date: new Date().toISOString()
+  });
+  
+  saveData();
+  updateStats();
+  
+  alert('✅ Prise enregistrée !');
+}
+
+function deleteMed(idx) {
+  if (confirm('Supprimer ce médicament ?')) {
+    meds.splice(idx, 1);
+    saveData();
+    displayMeds();
+    updateStats();
+  }
+}
+
+// === STATS ===
+function updateStats() {
+  // Streak (simplifié : jours avec au moins 1 prise)
+  const uniqueDays = [...new Set(takes.map(t => t.date.split('T')[0]))];
+  let streak = 0;
+  const today = new Date().toISOString().split('T')[0];
+  
+  if (uniqueDays.includes(today)) {
+    streak = 1;
+    for (let i = 1; i < 30; i++) {
+      const date = new Date(Date.now() - i * 86400000).toISOString().split('T')[0];
+      if (uniqueDays.includes(date)) {
+        streak++;
+      } else {
+        break;
+      }
+    }
+  }
+  
+  document.getElementById('streakValue').textContent = streak;
+  document.getElementById('totalMeds').textContent = meds.length;
+  document.getElementById('totalTakes').textContent = takes.length;
+}
+
+// === RESET ===
+function resetApp() {
+  if (confirm('⚠️ Supprimer TOUTES les données ?')) {
+    localStorage.clear();
+    location.reload();
+  }
+}
+</script>
+
+</body>
+</html>
