@@ -11,10 +11,13 @@
     h1 { color: #333; margin-bottom: 10px; text-align: center; }
     .subtitle { color: #666; text-align: center; margin-bottom: 30px; font-size: 14px; }
     .form-group { margin-bottom: 20px; position: relative; }
+    .form-row { display: flex; gap: 15px; }
+    .form-row .form-group { flex: 1; }
     label { display: block; margin-bottom: 8px; color: #333; font-weight: 500; }
-    input, textarea { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px; font-family: inherit; }
-    input:focus, textarea:focus { outline: none; border-color: #667eea; box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1); }
+    input, textarea, select { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px; font-family: inherit; }
+    input:focus, textarea:focus, select:focus { outline: none; border-color: #667eea; box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1); }
     button { width: 100%; padding: 12px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 5px; font-size: 16px; font-weight: 600; cursor: pointer; }
+    button:hover { opacity: 0.9; }
     
     /* Styles pour l'autocomplete */
     #suggestions { list-style: none; position: absolute; top: 100%; left: 0; right: 0; background: white; border: 1px solid #ddd; border-top: none; border-radius: 0 0 5px 5px; max-height: 200px; overflow-y: auto; z-index: 100; display: none; }
@@ -22,6 +25,13 @@
     #suggestions li { padding: 10px; border-bottom: 1px solid #eee; cursor: pointer; }
     #suggestions li:last-child { border-bottom: none; }
     #suggestions li:hover { background-color: #f0f0f0; }
+    
+    /* Treatment List */
+    .treatments-section { margin-top: 40px; padding-top: 30px; border-top: 2px solid #667eea; }
+    .treatment-item { background: #f9f9f9; padding: 15px; border-radius: 5px; margin-bottom: 10px; border-left: 4px solid #667eea; }
+    .treatment-item h4 { color: #333; margin-bottom: 5px; }
+    .treatment-item p { color: #666; font-size: 13px; margin: 3px 0; }
+    .btn-remove { background: #dc3545; padding: 6px 12px; font-size: 12px; width: auto; margin-top: 10px; }
     
     .features { margin-top: 30px; padding-top: 30px; border-top: 1px solid #eee; }
     .feature { display: flex; align-items: center; margin-bottom: 15px; }
@@ -33,7 +43,7 @@
   <div class="container">
     <h1>MedCoach</h1>
     <p class="subtitle">Votre coach santé personnel</p>
-    <form>
+    <form id="medForm">
       <div class="form-group">
         <label for="name">Nom</label>
         <input type="text" id="name" name="name" placeholder="Entrez votre nom" required>
@@ -56,12 +66,39 @@
         <input type="hidden" id="medDosage" name="medDosage">
       </div>
       
+      <!-- Quantité et Unité -->
+      <div class="form-row">
+        <div class="form-group">
+          <label for="qte">Quantité</label>
+          <input type="number" id="qte" name="qte" placeholder="1" min="0.5" step="0.5" value="1">
+        </div>
+        <div class="form-group">
+          <label for="unit">Unité</label>
+          <select id="unit" name="unit">
+            <option value="">Sélectionner</option>
+            <option value="comprimé">Comprimé</option>
+            <option value="ml">ml</option>
+            <option value="gouttes">Gouttes</option>
+            <option value="gélule">Gélule</option>
+            <option value="sachet">Sachet</option>
+          </select>
+        </div>
+      </div>
+      
       <div class="form-group">
         <label for="concern">Préoccupation Santé</label>
         <textarea id="concern" name="concern" rows="4" placeholder="Décrivez votre objectif de santé..."></textarea>
       </div>
+      <button type="button" id="addMed">Ajouter ce médicament</button>
       <button type="submit">Commencer</button>
     </form>
+
+    <!-- Traitements ajoutés -->
+    <div id="treatmentsContainer" class="treatments-section" style="display: none;">
+      <h3>Mes traitements</h3>
+      <div id="treatmentsList"></div>
+    </div>
+    
     <div class="features">
       <div class="feature">
         <div class="feature-icon">✓</div>
@@ -80,6 +117,54 @@
 
   <script>
     let abortController = null;
+    let treatments = [];
+
+    // Charger les traitements depuis localStorage au démarrage
+    function loadTreatments() {
+      const saved = localStorage.getItem('medcoach_treatments');
+      if (saved) {
+        try {
+          treatments = JSON.parse(saved);
+          displayTreatments();
+        } catch (e) {
+          console.error('Erreur lors du chargement des traitements', e);
+        }
+      }
+    }
+
+    // Sauvegarder les traitements dans localStorage
+    function saveTreatments() {
+      localStorage.setItem('medcoach_treatments', JSON.stringify(treatments));
+    }
+
+    // Afficher les traitements
+    function displayTreatments() {
+      const container = document.getElementById('treatmentsContainer');
+      const list = document.getElementById('treatmentsList');
+      
+      if (treatments.length === 0) {
+        container.style.display = 'none';
+        return;
+      }
+      
+      container.style.display = 'block';
+      list.innerHTML = treatments.map((t, idx) => `
+        <div class="treatment-item">
+          <h4>${t.name}</h4>
+          <p><strong>Code:</strong> ${t.code}</p>
+          <p><strong>Dosage:</strong> ${t.dosage || 'N/A'}</p>
+          <p><strong>Quantité:</strong> ${t.qte} ${t.unit}</p>
+          <button type="button" class="btn-remove" onclick="removeTreatment(${idx})">Supprimer</button>
+        </div>
+      `).join('');
+    }
+
+    // Supprimer un traitement
+    function removeTreatment(idx) {
+      treatments.splice(idx, 1);
+      saveTreatments();
+      displayTreatments();
+    }
 
     async function searchMed(query) {
       const suggestions = document.getElementById('suggestions');
@@ -90,7 +175,6 @@
         return;
       }
 
-      // Annuler la requête précédente
       if (abortController) {
         abortController.abort();
       }
@@ -146,8 +230,48 @@
       const dosageInput = document.getElementById('medDosage');
 
       if (codeInput) codeInput.value = code;
-      if (dosageInput && dosage) dosageInput.value = dosage;
+      if (dosageInput) dosageInput.value = dosage;
+
+      // Initialiser la quantité et l'unité par défaut
+      document.getElementById('qte').value = 1;
+      document.getElementById('unit').innerHTML = '<option value="">Sélectionner</option><option value="comprimé" selected>Comprimé</option><option value="ml">ml</option><option value="gouttes">Gouttes</option><option value="gélule">Gélule</option><option value="sachet">Sachet</option>';
     }
+
+    // Ajouter le médicament aux traitements
+    document.getElementById('addMed').addEventListener('click', function() {
+      const medName = document.getElementById('medSearch').value;
+      const medCode = document.getElementById('medCode').value;
+      const qte = document.getElementById('qte').value;
+      const unit = document.getElementById('unit').value;
+      const dosage = document.getElementById('medDosage').value;
+
+      if (!medName || !medCode || !qte || !unit) {
+        alert('Veuillez remplir tous les champs du médicament');
+        return;
+      }
+
+      const treatment = {
+        code: medCode,
+        name: medName,
+        dosage: dosage,
+        qte: parseFloat(qte),
+        unit: unit
+      };
+
+      treatments.push(treatment);
+      saveTreatments();
+      displayTreatments();
+
+      // Réinitialiser le formulaire
+      document.getElementById('medSearch').value = '';
+      document.getElementById('medCode').value = '';
+      document.getElementById('medDosage').value = '';
+      document.getElementById('qte').value = 1;
+      document.getElementById('unit').selectedIndex = 0;
+    });
+
+    // Charger les traitements au démarrage
+    loadTreatments();
   </script>
 </body>
 </html>
